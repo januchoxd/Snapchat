@@ -16,11 +16,12 @@ class PictureViewController: UIViewController, UIImagePickerControllerDelegate, 
     @IBOutlet weak var nextButton: UIButton!
     
     var imagePicker = UIImagePickerController()
+    var uuid = NSUUID().uuidString
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
+        nextButton.isEnabled = false
         imagePicker.delegate = self
     }
     
@@ -31,6 +32,7 @@ class PictureViewController: UIViewController, UIImagePickerControllerDelegate, 
         
         imageView.backgroundColor = UIColor.clear
         
+        nextButton.isEnabled = true
         imagePicker.dismiss(animated: true, completion: nil)
     }
   
@@ -54,21 +56,27 @@ class PictureViewController: UIViewController, UIImagePickerControllerDelegate, 
         
         
         //NSUUUID doda unikalny identyfikator do zdjęcie, by sie nie nadpisywały
-        imagesFolder.child("\(NSUUID().uuidString).jpg").put(imageData, metadata: nil, completion: {(metadata, error) in
+        imagesFolder.child("\(uuid).jpg").put(imageData, metadata: nil, completion: {(metadata, error) in
             print("we tried to upload")
             if error != nil {
                 print("we had an error : \(error)")
             }else {
                 print(metadata?.downloadURL()!)
                 
-                self.performSegue(withIdentifier: "selectUsersegue", sender: nil)
+                self.performSegue(withIdentifier: "selectUsersegue", sender: metadata?.downloadURL()!.absoluteString)
             }
         })
         
         
     }
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-       
+       //przesyłamy do nastepnego widoku url obrazka i jego opis
+        let nextVC = segue.destination as! SelectUserViewController
+        nextVC.imageURL = sender as! String
+        nextVC.descrip = DescriptionTextField.text!
+        nextVC.uuid = uuid
+        
+        
         
     }
     
